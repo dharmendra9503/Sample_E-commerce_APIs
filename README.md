@@ -2,7 +2,8 @@
 This repository contains APIs for product and category where you can create, update, list, delete products and categories.
 
 
-1. Welcome:
+
+`Welcome:
 
        localhost:3030/api
 
