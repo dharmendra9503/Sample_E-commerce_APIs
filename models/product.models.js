@@ -54,37 +54,33 @@ const list = async (page, info) => {
 
     let limitFromUser = info.queryData.limit;     //limit query value
 
-    let bySku = info.queryData.productSku;        //This is use for product search in list by sku   (productSku query value)
-    let byName = info.queryData.productName;      //This is use for product search in list by name  (ProductName query value)
-    let byCategoryId = info.queryData.categoryId;
+    let bySku = info.queryData.productSku;          //This is use for product search in list by sku   (productSku query value)
+    let byName = info.queryData.productName;        //This is use for product search in list by name  (ProductName query value)
+    let byCategoryId = info.queryData.categoryId;   //This is use for product search in list by categoryName  (categoryName query value)
 
-    let countQuery = '';
-    let countParams = '';
+    let countQuery = `SELECT COUNT(id) as total from ${tableName} where status != ?`;
+    let countParams = [dataStatusText.DELETED];
 
     //If user want to search product by sku and name then below if condition will execute
     if (bySku !== undefined && byName !== undefined) {
-        countQuery = `SELECT COUNT(id) as total from ${tableName} where status != ? AND sku = ? AND name = ?`;
+        countQuery = `${countQuery} AND sku = ? AND name = ?`;
         countParams = [dataStatusText.DELETED, bySku, byName];
     }
     // If user want to search product by sku then below if condition will execute
     else if (bySku !== undefined) {
-        countQuery = `SELECT COUNT(id) as total from ${tableName} where status != ? AND sku = ?`;
+        countQuery = `${countQuery} AND sku = ?`;
         countParams = [dataStatusText.DELETED, bySku];
     }
     // If user want to search product by name then below if condition will execute
     else if (byName !== undefined) {
-        countQuery = `SELECT COUNT(id) as total from ${tableName} where status != ? AND name = ?`;
+        countQuery = `${countQuery} AND name = ?`;
         countParams = [dataStatusText.DELETED, byName];
     }
     else if (byCategoryId !== undefined) {
-        countQuery = `SELECT COUNT(id) as total from ${tableName} where status != ? AND category_id = ?`;
+        countQuery = `${countQuery} AND category_id = ?`;
         countParams = [dataStatusText.DELETED, byCategoryId];
     }
-    //If user want to see whole product list then below condition will execute
-    else {
-        countQuery = `SELECT COUNT(id) as total from ${tableName} where status != ?`;
-        countParams = [dataStatusText.DELETED];
-    }
+
 
     //Below code used to find total number of available rows.
     const countData = await dbConnection.query(countQuery, countParams);
@@ -96,29 +92,29 @@ const list = async (page, info) => {
         limitString = `LIMIT ${offset}, ${limitFromUser || pageConfig.PRODUCTS}`;
     }
 
-    let query = '';
-    let params = '';
+    let query = `SELECT * FROM ${tableName} WHERE status != ?`;
+    let params = [dataStatusText.DELETED];
 
     if (bySku != undefined && byName != undefined) {
-        query = `SELECT * FROM ${tableName} WHERE status != ? AND sku = ? AND name = ? ${limitString} `;
+        query = `${query} AND sku = ? AND name = ?`;
         params = [dataStatusText.DELETED, bySku, byName];
     }
     else if (bySku !== undefined) {
-        query = `SELECT * FROM ${tableName} WHERE status != ? AND sku = ? ${limitString} `;
+        query = `${query} AND sku = ?`;
         params = [dataStatusText.DELETED, bySku];
     }
     else if (byName != undefined) {
-        query = `SELECT * FROM ${tableName} WHERE status != ? AND name = ? ${limitString} `;
+        query = `${query} AND name = ?`;
         params = [dataStatusText.DELETED, byName];
     }
     else if (byCategoryId !== undefined) {
-        query = `SELECT * FROM ${tableName} WHERE status != ? AND category_id = ? ${limitString} `;
+        query = `${query} AND category_id = ?`;
         params = [dataStatusText.DELETED, byCategoryId];
     }
-    else {
-        query = `SELECT * FROM ${tableName} WHERE status != ? ${limitString} `;
-        params = [dataStatusText.DELETED];
-    }
+
+    query = `${query} ${limitString} `;
+
+
     const resultData = await dbConnection.query(query, params);
     qData['data'] = resultData || [];
     return qData;

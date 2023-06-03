@@ -73,16 +73,12 @@ const list = async (page, info) => {
 
     let byName = info.queryData.categoryName;
 
-    let countQuery = '';
-    let countParams = '';
+    let countQuery = `SELECT COUNT(id) as total from ${tableName} where status != ?`;
+    let countParams = [dataStatusText.DELETED];
 
     if (byName !== undefined) {
-        countQuery = `SELECT COUNT(id) as total from ${tableName} where status != ? AND name = ?`;
+        countQuery = `${countQuery} AND name = ?`;
         countParams = [dataStatusText.DELETED, byName];
-    }
-    else {
-        countQuery = `SELECT COUNT(id) as total from ${tableName} where status != ?`;
-        countParams = [dataStatusText.DELETED];
     }
 
     //Below code used to find total number of available rows.
@@ -96,17 +92,15 @@ const list = async (page, info) => {
     }
 
 
-    let query = '';
-    let params = '';
+    let query = `SELECT * FROM ${tableName} WHERE status != ?`;
+    let params = [dataStatusText.DELETED];
 
     if (byName !== undefined) {
-        query = `SELECT * FROM ${tableName} WHERE status != ? AND name = ? ${limitString} `;
+        query = ` AND name = ? ${limitString} `;
         params = [dataStatusText.DELETED, byName];
     }
-    else {
-        query = `SELECT * FROM ${tableName} WHERE status != ? ${limitString} `;
-        params = [dataStatusText.DELETED];
-    }
+
+    query = `${query} ${limitString}`;
 
     const resultData = await dbConnection.query(query, params);
     qData['data'] = resultData || [];
