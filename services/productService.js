@@ -1,10 +1,18 @@
 // To handle database query we can write code here
 const { HTTP_STATUS_CODES, dataStatusText, pageConfig, user_type } = require('../config/status');
-const product = require('../models/product.models');
-const category = require('../models/category.models');
+
+//This is use for ROW sql query
+// const product = require('../models/product.models');
+// const category = require('../models/category.models');
+
+
 const categoryService = require('../services/categoryService');
 const { getCurrentTimestamp } = require('../utils/date.util');
 const { PRODUCT, errorMessages, CATEGORY } = require('../helpers/responseMessage');
+
+//This is use for sequelize query
+const product = require('../models/product.model.sequelize');
+const category = require('../models/category.model.sequelize');
 
 
 const create = async (data, params) => {
@@ -87,12 +95,11 @@ const update = async (data, params) => {
     };
 
     const id = Number(params.id) || 0;
-    // const { userId } = info;
 
     try {
         const qData = await product.viewById(id);
         if (qData) {
-            if (data.sku != qData.sku) {
+            if (data.sku !== undefined && data.sku != qData.sku) {
                 const existingSku = await product.checkProductBySKU(data.sku);
                 if (existingSku) {
                     result.error = true;
@@ -101,7 +108,7 @@ const update = async (data, params) => {
                 }
             }
 
-            if (data.category_id != qData.category_id) {
+            if (data.category_id !== undefined && data.category_id != qData.category_id) {
                 const existingCategory = await category.checkCategoryExists(data.category_id);
                 if (existingCategory === null) {
                     result.error = true;
@@ -181,10 +188,16 @@ const list = async (data, params, info) => {
     //This will find category id byName
     if(info.queryData.categoryName !== undefined) {
         info.queryData.categoryName = categoryService.simplify(info.queryData.categoryName);
-        const categoryData = await category.findCategoryId(info.queryData.categoryName);
+
+        //This is used in sql row query
+        // const categoryData = await category.findCategoryId(info.queryData.categoryName);
+
+        //This is used in sequelize query
+        const categoryData = await category.checkByName(info.queryData.categoryName);
+        console.log(categoryData);
         info.queryData.categoryId = categoryData.id;
     }
-
+// 
     // console.log(page);
     try {
         const qData = await product.list(page, info);

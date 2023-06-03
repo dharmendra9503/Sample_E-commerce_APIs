@@ -1,5 +1,11 @@
 const { HTTP_STATUS_CODES, dataStatusText, pageConfig, user_type } = require('../config/status');
-const category = require('../models/category.models');
+
+//This is use for SQL row query
+// const category = require('../models/category.models');
+
+//This is use for sequelize query
+const category = require('../models/category.model.sequelize');
+
 const { getCurrentTimestamp } = require('../utils/date.util');
 const { CATEGORY, errorMessages } = require('../helpers/responseMessage');
 
@@ -46,6 +52,7 @@ const viewById = async (data, params, info) => {
     //get data
     try {
         const qData = await category.viewById(id);
+
         if (qData) {
             (qData.status = dataStatusText[qData.status] || dataStatusText.NA),
                 result.data = qData;
@@ -73,6 +80,11 @@ const update = async (data, params) => {
 
     try {
         const qData = await category.viewById(id);
+
+        if (data.name !== undefined) {
+            data.name = simplify(data.name);
+        }
+
         if (qData) {
             if (data.sku != qData.sku) {
                 const existingCategory = await category.checkByName(data.sku);
@@ -198,4 +210,4 @@ const stateStatus = (status) => {
     return stat;
 }
 
-module.exports = { create, viewById, update, deleteById, list, simplify};
+module.exports = { create, viewById, update, deleteById, list, simplify };
